@@ -1,9 +1,13 @@
-import { motion } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import Spline from '@splinetool/react-spline'
+import { useEffect, useRef, useState } from 'react'
 
 export default function Hero({ riderCount = 50 }) {
   const impressionsPerRider = 8500
   const totalImpressions = riderCount * impressionsPerRider
+
+  const counterRef = useRef(null)
+  const inView = useInView(counterRef, { once: true, margin: '-80px' })
 
   return (
     <section className="relative min-h-[90vh] w-full overflow-hidden pt-24" aria-label="DeliverAds Hero">
@@ -45,11 +49,13 @@ export default function Hero({ riderCount = 50 }) {
           </motion.div>
 
           <motion.div
+            ref={counterRef}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.8 }}
-            className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4"
+            className="relative mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4"
           >
+            {inView && <ParticleBurst />}
             <GlassCard>
               <Counter label="Riders Active" value={riderCount} suffix="+"/>
             </GlassCard>
@@ -90,7 +96,6 @@ function Counter({ value, label, suffix = '' }) {
   )
 }
 
-import { useEffect, useRef, useState } from 'react'
 function useCountUp(target, duration = 1400) {
   const [val, setVal] = useState(0)
   useEffect(() => {
@@ -129,6 +134,40 @@ function FloatingRackCard() {
           <li>• High-visibility edge lighting for safety</li>
         </ul>
       </div>
+    </div>
+  )
+}
+
+function ParticleBurst(){
+  const COUNT = 80
+  const particles = Array.from({ length: COUNT })
+  const variants = {
+    hidden: { opacity: 0, scale: 0.6 },
+    show: (i) => {
+      const angle = Math.random() * Math.PI * 2
+      const radius = 80 + Math.random() * 160
+      const x = Math.cos(angle) * radius
+      const y = Math.sin(angle) * radius
+      return {
+        opacity: [0, 1, 0],
+        x, y, scale: [0.6, 1, 0.6],
+        transition: { duration: 1.6 + Math.random()*0.6, ease: 'easeOut' }
+      }
+    }
+  }
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-visible">
+      {particles.map((_, i) => (
+        <motion.span
+          key={i}
+          className="absolute left-1/2 top-1/2 block h-1.5 w-1.5 rounded-full"
+          style={{ background: i % 2 ? 'rgba(0,229,255,0.9)' : 'rgba(59,130,246,0.9)' }}
+          variants={variants}
+          initial="hidden"
+          animate="show"
+          custom={i}
+        />
+      ))}
     </div>
   )
 }
